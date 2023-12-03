@@ -32,8 +32,12 @@ function test2(matrix) {
             if (x === GEAR_SYMBOL) {
                 const numbers = findAdjacentNumbers(matrix, idxX, idxY);
                 if (numbers.length === 2) {
-                    const [number1, number2] = numbers;
-                    sum += parseInt(number1, 10) * parseInt(number2, 10);
+                    let currentSum = 1;
+                    numbers.forEach(n => {
+                        currentSum *= parseInt(n, 10);
+                    });
+
+                    sum += currentSum;
                 }
             }
         }
@@ -49,21 +53,50 @@ function isValidNumber(matrix, x, y) {
     }
 }
 
-function findAdjacentNumbers(matrix, _x, _y) {
+function getNumberString(matrix, startIndex, y) {
+    let index = startIndex;
+    let number = "";
+    while (isValidNumber(matrix, index, y)) {
+        number += matrix[y][index++];
+    }
+    return number;
+}
+
+
+function findNumbersFromRow(x, y, matrix) {
+    const row = matrix[y];
     const result = [];
 
-    console.log(_x, _y);
-    for (let x = _x - 1; x <= _x + 1; x++) {
-        for (let y = _y - 1; y <= _y + 1; y++) {
-            if (_x === x && _y === y) continue;
-            if (!isInBounds(matrix, x, y)) continue;
-            if (isNumber(matrix, x, y)) {
-                console.log(`isNumber: ${matrix[y][x]}`);
-            }
-        }
+    if (!row) return result;
+    const x1IsNumber = isValidNumber(matrix, x - 1, y);
+    const x2IsNumber = isValidNumber(matrix, x, y);
+    const x3IsNumber = isValidNumber(matrix, x + 1, y);
+
+    // One number case
+    if (x1IsNumber) {
+        let index = x - 1;
+        while (isValidNumber(matrix, index - 1, y)) index -= 1;
+        result.push(getNumberString(matrix, index, y));
+    } else if (x2IsNumber) {
+        result.push(getNumberString(matrix, x, y));
+    } else if (x3IsNumber) {
+        result.push(getNumberString(matrix, x + 1, y));
     }
 
+    // Two numbers case
+    if (x1IsNumber && !x2IsNumber && x3IsNumber) {
+        result.push(getNumberString(matrix, x + 1, y));
+    }
     return result;
+}
+
+function findAdjacentNumbers(matrix, x, y) {
+    // What we know. It is always x-aligned, meaning we can go row by row.
+    const aboveResult = findNumbersFromRow(x, y - 1, matrix);
+    const currentResult = findNumbersFromRow(x, y, matrix);
+    const belowResult = findNumbersFromRow(x, y + 1, matrix);
+    
+    return [...aboveResult, ...currentResult, ...belowResult];
 }
 
 function makeInputMatrix(input) {
@@ -266,8 +299,16 @@ const testinput = `467..114..
 
 
 const mat = makeInputMatrix(input);
-// console.log(`testinput test1: ${test1(makeInputMatrix(testinput))}, expected 4361`)
-// console.log(`test1: ${test1(mat)}`);
+console.log(`testinput test1: ${test1(makeInputMatrix(testinput))}, expected 4361`)
+console.log(`test1: ${test1(mat)}`);
 const test2TestInput = test2(makeInputMatrix(testinput));
 console.log(`testinput test2: ${test2TestInput} expected 467835, which is ${test2TestInput === 467835}`);
-// console.log(`test2: ${test2(mat)}`);
+console.log(`test2: ${test2(mat)}`);
+
+// TOO LOW
+// 52292427
+
+// TOO HIGH
+// 4182806444226
+// Exact
+// 79844424
