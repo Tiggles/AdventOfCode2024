@@ -1,7 +1,6 @@
 function test1(matrix) {
     let sum = 0;
     for (const [idxY, y] of matrix.entries()) {
-        console.log(`line y ${idxY}, current sum: ${sum}`);
         let currentNumber = "";
         let adjacentSymbol = false;
         for (const [idxX, x] of y.entries()) {
@@ -10,7 +9,6 @@ function test1(matrix) {
                 currentNumber += x;
             } else {
                 if (adjacentSymbol && currentNumber) {
-                    console.log(currentNumber);
                     sum += parseInt(currentNumber, 10);
                 }
                 currentNumber = "";
@@ -18,7 +16,6 @@ function test1(matrix) {
             }
         }
         if (adjacentSymbol && currentNumber) {
-            console.log(currentNumber);
             sum += parseInt(currentNumber, 10);
         }
         currentNumber = "";
@@ -27,8 +24,46 @@ function test1(matrix) {
     return sum;
 }
 
+const GEAR_SYMBOL = "*";
 function test2(matrix) {
+    let sum = 0;
+    for (const [idxY, y] of matrix.entries()) {
+        for (const [idxX, x] of y.entries()) {
+            if (x === GEAR_SYMBOL) {
+                const numbers = findAdjacentNumbers(matrix, idxX, idxY);
+                if (numbers.length === 2) {
+                    const [number1, number2] = numbers;
+                    sum += parseInt(number1, 10) * parseInt(number2, 10);
+                }
+            }
+        }
+    }
+    return sum;
+}
 
+function isValidNumber(matrix, x, y) {
+    if (matrix[y] !== undefined) {
+        if (matrix[y][x] !== undefined) {
+            return NUMBERS.includes(matrix[y][x]);
+        }
+    }
+}
+
+function findAdjacentNumbers(matrix, _x, _y) {
+    const result = [];
+
+    console.log(_x, _y);
+    for (let x = _x - 1; x <= _x + 1; x++) {
+        for (let y = _y - 1; y <= _y + 1; y++) {
+            if (_x === x && _y === y) continue;
+            if (!isInBounds(matrix, x, y)) continue;
+            if (isNumber(matrix, x, y)) {
+                console.log(`isNumber: ${matrix[y][x]}`);
+            }
+        }
+    }
+
+    return result;
 }
 
 function makeInputMatrix(input) {
@@ -47,27 +82,29 @@ function makeInputMatrix(input) {
     return result;
 }
 
-function hasAdjacentSymbol(x, y, matrix) {
-    const xMinus1 = x - 1;
-    const xPlus1 = x + 1;
-    const yMinus1 = y - 1;
-    const yPlus1 = y + 1;
+function hasAdjacentSymbol(_x, _y, matrix) {
+    let adjacentSymbol = false;
 
-    return isValid(matrix, xMinus1, yMinus1) || isValid(matrix, x, yMinus1) || isValid(matrix, xPlus1, yMinus1) ||
-        isValid(matrix, xMinus1, y) || isValid(matrix, xPlus1, y) ||
-        isValid(matrix, xMinus1, yPlus1) || isValid(matrix, x, yPlus1) || isValid(matrix, xPlus1, yPlus1);
+    for (let x = _x - 1; x <= _x + 1; x++) {
+        for (let y = _y - 1; y <= _y + 1; y++) {
+            if (_x === x && _y === y) continue;
+            adjacentSymbol = adjacentSymbol || isValid(matrix, x, y);
+        }
+    }
+
+    return adjacentSymbol;
 }
 
 function isNumber(char) {
     return NUMBERS.includes(char);
 }
 
+function isInBounds(matrix, x, y) {
+    return matrix[y] !== undefined && matrix[y][x] !== undefined;
+}
+
 function isValid(matrix, x, y) {
-    if (matrix[y] !== undefined) {
-        if (matrix[y][x] !== undefined) {
-            return !INVALID_SYMBOLS.includes(matrix[y][x]);
-        }
-    }
+    if (isInBounds(matrix, x, y)) return !INVALID_SYMBOLS.includes(matrix[y][x]);
     return false;
 }
 
@@ -226,7 +263,11 @@ const testinput = `467..114..
 ...$.*....
 .664.598..`
 
+
+
 const mat = makeInputMatrix(input);
-console.log(`testinput test1: ${test1(makeInputMatrix(testinput))}, expected 4361`)
-console.log(`test1: ${test1(mat)}`);
-console.log(`test2: ${test2(mat)}`);
+// console.log(`testinput test1: ${test1(makeInputMatrix(testinput))}, expected 4361`)
+// console.log(`test1: ${test1(mat)}`);
+const test2TestInput = test2(makeInputMatrix(testinput));
+console.log(`testinput test2: ${test2TestInput} expected 467835, which is ${test2TestInput === 467835}`);
+// console.log(`test2: ${test2(mat)}`);
